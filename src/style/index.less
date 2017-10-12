@@ -1,0 +1,61 @@
+@import 'helpers';
+
+html,
+body {
+	height: 100%;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	background: #fafafa;
+	font-family: 'Helvetica Neue', arial, sans-serif;
+	font-weight: 400;
+	color: #444;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+#app {
+	height: 100%;
+}
+
+.camera-video,
+.canvas {
+	width: 100vw;
+	height: 100vh;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.canvas {
+}
+
+.camera-video {
+	opacity: 0;
+}
+
+.people {
+	position: absolute;
+	bottom: 0;
+	background: red;
+	padding: 20px;
+	font-size: 40px;
+	left: 0;
+	right: 0;
+	z-index: 9999;
+}
+
+.main {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 76px 20px;
+}
+
+.card {
+	padding: 1em;
+	margin-bottom: 2em;
+}
