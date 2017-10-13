@@ -1,13 +1,7 @@
 import { h, Component } from 'preact';
-import style from './style';
 import { route } from 'preact-router';
 
-import {
-	deletePerson,
-	addPersonFace,
-	deletePersonFace,
-	getPerson
-} from '../../lib/api';
+import { addPersonFace, deletePersonFace, getPerson } from '../../lib/api';
 
 export default class PersonGroup extends Component {
 	state = {
@@ -45,18 +39,17 @@ export default class PersonGroup extends Component {
 		fileReader.readAsDataURL(fileToLoad);
 	};
 
-	deletePerson = () => {
-		deletePerson(this.props.personGroupId, this.props.personId).catch(() =>
-			route('/persongroup/' + this.props.personGroupId)
-		);
-	};
+	deletePerson = () => {};
 
 	deleteFace = id => {
-		deletePersonFace(
-			this.props.personGroupId,
-			this.props.personId,
-			id
-		).catch(() => this.loadPerson());
+		const ask = confirm('Are you sure ?');
+		if (ask) {
+			deletePersonFace(
+				this.props.personGroupId,
+				this.props.personId,
+				id
+			).catch(() => this.loadPerson());
+		}
 	};
 
 	componentWillMount() {
@@ -72,7 +65,6 @@ export default class PersonGroup extends Component {
 					class="card"
 				>
 					<h3>Add photo</h3>
-
 					<div class="form-group">
 						<label class="col-sm-2 col-form-label">Image:</label>
 						<div class="col-sm-10">
@@ -88,15 +80,12 @@ export default class PersonGroup extends Component {
 					<button class="btn btn-primary">Add</button>
 				</form>
 
-				<button onClick={this.deletePerson} class="btn btn-danger float-right">
-					Remove person
-				</button>
 				<h3>Person: {name}</h3>
 
 				<table class="table">
 					<tr>
 						<th>ID</th>
-						<th>Action</th>
+						<th>Actions</th>
 					</tr>
 					{persistedFaceIds.map(imgID => (
 						<tr>
@@ -106,7 +95,7 @@ export default class PersonGroup extends Component {
 									class="btn btn-danger btn-sm"
 									onClick={() => this.deleteFace(imgID)}
 								>
-									remove
+									Remove
 								</button>
 							</td>
 						</tr>

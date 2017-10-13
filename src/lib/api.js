@@ -1,3 +1,4 @@
+import { API_SUBSCRIPTION_KEY } from '../conf';
 const config = {
 	API_URL: 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'
 };
@@ -8,7 +9,7 @@ const apiFetch = (url, method = 'get', data = {}, aHeaders) => {
 		headers: {
 			Accept: 'application/json',
 			'Content-Type': 'application/json',
-			'Ocp-Apim-Subscription-Key': '',
+			'Ocp-Apim-Subscription-Key': API_SUBSCRIPTION_KEY,
 			...aHeaders
 		}
 	};
@@ -51,6 +52,9 @@ export const createGroup = (personGroupId, name) =>
 
 export const trainGroup = personGroupId =>
 	post(`persongroups/${personGroupId}/train`);
+
+export const removeGroup = personGroupId =>
+	remove(`persongroups/${personGroupId}`);
 
 export const getPeolpeFromPersonGroup = personGroupId =>
 	get(`persongroups/${personGroupId}/persons?start=0&top=1000`);

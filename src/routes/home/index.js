@@ -1,5 +1,10 @@
 import { h, Component } from 'preact';
-import { getAllGroups, createGroup } from '../../lib/api';
+import {
+	getAllGroups,
+	createGroup,
+	trainGroup,
+	removeGroup
+} from '../../lib/api';
 
 export default class Home extends Component {
 	state = {
@@ -10,7 +15,7 @@ export default class Home extends Component {
 		e.preventDefault();
 		const inputName = document.getElementById('name');
 		const inputId = document.getElementById('id');
-		createGroup(inputId.value, inputName.value).then(res => {
+		createGroup(inputId.value, inputName.value).catch(e => {
 			inputName.value = '';
 			inputId.value = '';
 			this.loadGroups();
@@ -23,6 +28,13 @@ export default class Home extends Component {
 				groups: result
 			});
 		});
+	};
+
+	removeGroup = personGroupId => {
+		const ask = confirm('Are you sure ?');
+		if (ask) {
+			removeGroup(personGroupId).catch(e => this.loadGroups());
+		}
 	};
 
 	componentWillMount() {
@@ -53,21 +65,34 @@ export default class Home extends Component {
 					<tr>
 						<th>Name</th>
 						<th>ID</th>
-						<th>Action</th>
+						<th width="260">Actions</th>
 					</tr>
-					{groups.map(({ name, personGroupId }) => (
-						<tr>
-							<td>
-								<a href={'/persongroup/' + personGroupId}>{name}</a>
-							</td>
-							<td>{personGroupId}</td>
-							<td>
-								<a href={'/face/' + personGroupId} class="btn btn-info">
-									Try it
-								</a>
-							</td>
-						</tr>
-					))}
+					{groups.map(({ name, personGroupId }) => {
+						const onRemove = () => this.removeGroup(personGroupId);
+						const onTrain = () => trainGroup(personGroupId);
+
+						return (
+							<tr>
+								<td>
+									<a href={'/persongroup/' + personGroupId}>{name}</a>
+								</td>
+								<td>{personGroupId}</td>
+								<td>
+									<div class="btn-group">
+										<a href={'/face/' + personGroupId} class="btn btn-info">
+											Try it
+										</a>
+										<button class="btn btn-success" onClick={onTrain}>
+											Train it
+										</button>
+										<button class="btn btn-danger" onClick={onRemove}>
+											Remove
+										</button>
+									</div>
+								</td>
+							</tr>
+						);
+					})}
 				</table>
 			</div>
 		);

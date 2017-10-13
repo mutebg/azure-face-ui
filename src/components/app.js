@@ -6,8 +6,6 @@ import Home from '../routes/home';
 import PersonGroup from '../routes/person-group';
 import Person from '../routes/person';
 import Face from '../routes/face';
-// import Home from 'async!./home';
-// import Profile from 'async!./profile';
 
 export default class App extends Component {
 	handleRoute = e => {
