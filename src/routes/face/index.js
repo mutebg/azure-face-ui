@@ -4,7 +4,8 @@ import {
 	startVideo,
 	capture,
 	compareImages,
-	findPerson
+	findPerson,
+	gumSuccess
 } from '../../lib/video';
 
 export default class Face extends Component {
@@ -13,43 +14,69 @@ export default class Face extends Component {
 		people: []
 	};
 
+	hideAll = () => {
+		this.setState({
+			people: []
+		});
+	};
+
+	componentWillUnmount() {}
+
 	async componentDidMount() {
 		const THRESHOLD = 8;
 		const videoEl = document.querySelector('#video');
-		const canvasEl = document.querySelector('#canvas');
-		canvasEl.width = document.body.clientWidth;
-		canvasEl.height = document.body.clientHeight;
+		const overlay = document.getElementById('canvas');
 
-		canvasEl.width = 800;
-		canvasEl.height = 600;
+		// Code for face tracking
+		let ctrack = new clm.tracker();
+		ctrack.init();
 
 		try {
-			await startVideo(videoEl);
+			startVideo(videoEl, ctrack);
+
 			setInterval(async () => {
-				const image = capture(videoEl, canvasEl);
-				this.lastImages.unshift(image);
+				// get position of face
+				const position = ctrack.getCurrentPosition();
 
-				//keep last n images
-				this.lastImages = this.lastImages.slice(0, 2);
+				if (position) {
+					const image = capture(videoEl, overlay);
+					this.lastImages.unshift(image);
 
-				const diffPercentage = await compareImages(...this.lastImages);
-				if (diffPercentage > THRESHOLD) {
-					const faceResult = await findPerson(image, this.props.personGroupId);
-					if (faceResult.length > 0) {
-						const people = await Promise.all(
-							faceResult.map(
-								async person =>
-									await getPerson(
-										this.props.personGroupId,
-										person.candidates[0].personId
-									)
-							)
+					//keep last 2 images
+					this.lastImages = this.lastImages.slice(0, 2);
+
+					// compare last 2 images
+					const diffPercentage = await compareImages(...this.lastImages);
+					if (diffPercentage > THRESHOLD) {
+						// find faces
+						const faceResult = await findPerson(
+							image,
+							this.props.personGroupId
 						);
 
-						this.setState({
-							people
-						});
+						// identify people on images
+						if (faceResult.length > 0) {
+							const people = await Promise.all(
+								faceResult.map(
+									async person =>
+										await getPerson(
+											this.props.personGroupId,
+											person.candidates[0].personId
+										)
+								)
+							);
+
+							this.setState({
+								people
+							});
+						}
+						else {
+							this.hideAll();
+						}
 					}
+				}
+				else {
+					this.hideAll();
 				}
 			}, 1000);
 		}
@@ -61,8 +88,14 @@ export default class Face extends Component {
 	render(_, { people }) {
 		return (
 			<div>
-				<video id="video" class="camera-video" autoplay />
-				<canvas id="canvas" class="canvas" />
+				<video
+					id="video"
+					class="camera-video"
+					autoplay
+					width="800"
+					height="600"
+				/>
+				<canvas id="canvas" class="canvas" width="800" height="600" />
 				<div class="people">
 					{people.map(({ name, personId }) => <p key={personId}>{name}</p>)}
 				</div>
