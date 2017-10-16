@@ -12,14 +12,14 @@ export const startVideo = (video, ctrack) => {
 	if (navigator.mediaDevices) {
 		navigator.mediaDevices
 			.getUserMedia({ video: true })
-			.then(stream => gumSuccess(stream, video))
-			.catch(e => console.log(e));
+			.then(stream => getMediaSuccess(stream, video))
+			.catch(getMediaFail);
 	}
 	else if (navigator.getUserMedia) {
 		navigator.getUserMedia(
 			{ video: true },
-			stream => gumSuccess(stream, video),
-			e => console.log(e)
+			stream => getMediaSuccess(stream, video),
+			getMediaFail
 		);
 	}
 
@@ -49,21 +49,19 @@ export const compareImages = (newImage, oldImage) =>
 	});
 
 export const findPerson = async (base64image, personGroupId) => {
-	try {
-		const blob = await fetch(base64image).then(res => res.blob());
-		const faceData = await detect(blob);
-		const faceIds = faceData.map(({ faceId }) => faceId);
-		if (faceIds.length === 0) {
-			throw 'No find face';
-		}
-		return identify(faceIds, personGroupId);
+	const blob = await fetch(base64image).then(res => res.blob());
+	const faceData = await detect(blob);
+	const faceIds = faceData.map(({ faceId }) => faceId);
+	if (faceIds.length === 0) {
+		throw 'No find face';
 	}
-	catch (e) {
-		console.log(e);
-	}
+	const result = await identify(faceIds, personGroupId);
+	return result.map(
+		person => person.candidates.length && person.candidates[0].personId
+	);
 };
 
-export function gumSuccess(stream, video) {
+export function getMediaSuccess(stream, video) {
 	// add camera stream if getUserMedia succeeded
 	if ('srcObject' in video) {
 		video.srcObject = stream;
@@ -74,4 +72,11 @@ export function gumSuccess(stream, video) {
 	video.onloadedmetadata = function() {
 		video.play();
 	};
+}
+
+function getMediaFail(e) {
+	conosle.log(e);
+	alert(
+		'There was some problem trying to fetch video from your webcam, using a fallback video instead.'
+	);
 }

@@ -1,11 +1,10 @@
 import { h, Component } from 'preact';
-import { getPerson } from '../../lib/api';
+import { getPerson, getPeolpeFromPersonGroup } from '../../lib/api';
 import {
 	startVideo,
 	capture,
 	compareImages,
-	findPerson,
-	gumSuccess
+	findPerson
 } from '../../lib/video';
 
 export default class Face extends Component {
@@ -20,8 +19,6 @@ export default class Face extends Component {
 		});
 	};
 
-	componentWillUnmount() {}
-
 	async componentDidMount() {
 		const THRESHOLD = 8;
 		const videoEl = document.querySelector('#video');
@@ -32,48 +29,55 @@ export default class Face extends Component {
 		ctrack.init();
 
 		try {
+			// start video
 			startVideo(videoEl, ctrack);
+
+			// fetch all people from azure api
+			const allPeopleData = await getPeolpeFromPersonGroup(
+				this.props.personGroupId
+			);
+			// transform people array to object with {person_id => person name }
+			const allPeople = allPeopleData.reduce((prev, current) => {
+				prev[current.personId] = current.name;
+				return prev;
+			}, {});
 
 			setInterval(async () => {
 				// get position of face
 				const position = ctrack.getCurrentPosition();
 
-				if (position) {
-					const image = capture(videoEl, overlay);
-					this.lastImages.unshift(image);
+				if (!position) {
+					// no faces on the image
+					this.hideAll();
+					return false;
+				}
 
-					//keep last 2 images
-					this.lastImages = this.lastImages.slice(0, 2);
+				const image = capture(videoEl, overlay);
+				this.lastImages.unshift(image);
 
-					// compare last 2 images
-					const diffPercentage = await compareImages(...this.lastImages);
-					if (diffPercentage > THRESHOLD) {
-						// find faces
-						const faceResult = await findPerson(
-							image,
-							this.props.personGroupId
-						);
+				//keep last 2 images
+				this.lastImages = this.lastImages.slice(0, 2);
 
-						// identify people on images
-						if (faceResult.length > 0) {
-							const people = await Promise.all(
-								faceResult.map(
-									async person =>
-										await getPerson(
-											this.props.personGroupId,
-											person.candidates[0].personId
-										)
-								)
-							);
+				// compare last 2 images
+				const diffPercentage = await compareImages(...this.lastImages);
+				if (diffPercentage < THRESHOLD) {
+					// images are similar
+					return false;
+				}
 
-							this.setState({
-								people
-							});
-						}
-						else {
-							this.hideAll();
-						}
-					}
+				// find faces
+				const faceIds = await findPerson(image, this.props.personGroupId);
+
+				// identify people on images
+				if (faceIds && faceIds.length > 0) {
+					const people = faceIds.map(id => ({
+						id,
+						name: allPeople[id]
+					}));
+
+					this.setState({
+						people
+					});
 				}
 				else {
 					this.hideAll();
@@ -84,6 +88,8 @@ export default class Face extends Component {
 			console.log(e);
 		}
 	}
+
+	componentWillUnmount() {}
 
 	render(_, { people }) {
 		return (
