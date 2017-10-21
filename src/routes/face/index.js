@@ -4,8 +4,7 @@ import {
 	startVideo,
 	capture,
 	compareImages,
-	findPerson,
-	gumSuccess
+	findPerson
 } from '../../lib/video';
 
 export default class Face extends Component {
@@ -19,8 +18,6 @@ export default class Face extends Component {
 			people: []
 		});
 	};
-
-	componentWillUnmount() {}
 
 	async componentDidMount() {
 		const THRESHOLD = 8;
@@ -80,10 +77,10 @@ export default class Face extends Component {
 				}
 			}, 1000);
 		}
-		catch (e) {
-			console.log(e);
-		}
+		catch (e) {}
 	}
+
+	componentWillUnmount() {}
 
 	render(_, { people }) {
 		return (
