@@ -5,6 +5,7 @@ import {
 	trainGroup,
 	removeGroup
 } from '../../lib/api';
+import Form from '../../components/form';
 
 export default class Home extends Component {
 	state = {
@@ -44,22 +45,13 @@ export default class Home extends Component {
 	render(_, { groups }) {
 		return (
 			<div class="main">
-				<form onSubmit={this.addGroup.bind(this)} class="card">
-					<h3>Add group</h3>
-					<div class="form-group row">
-						<label class="col-sm-2 col-form-label">ID:</label>
-						<div class="col-sm-10">
-							<input name="name" id="id" class="form-control" />
-						</div>
-					</div>
-					<div class="form-group row">
-						<label class="col-sm-2 col-form-label">Name:</label>
-						<div class="col-sm-10">
-							<input name="name" id="name" class="form-control" />
-						</div>
-					</div>
-					<button class="btn btn-primary">Add</button>
-				</form>
+				<Form
+					title="Add group"
+					onSubmit={this.addGroup.bind(this)}
+					submitLabel="Add"
+					fields={[{ id: 'id', label: 'ID' }, { id: 'name', label: 'Name' }]}
+				/>
+
 				<h3>My groups</h3>
 				<table class="table">
 					<tr>

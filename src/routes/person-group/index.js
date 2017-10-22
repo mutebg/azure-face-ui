@@ -4,6 +4,7 @@ import {
 	createPerson,
 	deletePerson
 } from '../../lib/api';
+import Form from '../../components/form';
 
 export default class PersonGroup extends Component {
 	state = {
@@ -43,17 +44,12 @@ export default class PersonGroup extends Component {
 	render({ personGroupId }, { people }) {
 		return (
 			<div class="main">
-				<form onSubmit={this.addPerson.bind(this)} class="card">
-					<h3>Add person</h3>
-					<div class="form-group row">
-						<label class="col-sm-2 col-form-label">Name:</label>
-						<div class="col-sm-10">
-							<input name="name" id="name" class="form-control" />
-						</div>
-					</div>
-
-					<button class="btn btn-primary">Add</button>
-				</form>
+				<Form
+					title="Add person"
+					onSubmit={this.addPerson.bind(this)}
+					submitLabel="Add person"
+					fields={[{ id: 'name', label: 'Name' }]}
+				/>
 
 				<h3>List of people:</h3>
 				<table class="table">

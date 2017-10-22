@@ -1,5 +1,6 @@
 import { h, Component } from 'preact';
 import { route } from 'preact-router';
+import Form from '../../components/form';
 
 import { addPersonFace, deletePersonFace, getPerson } from '../../lib/api';
 
@@ -59,26 +60,19 @@ export default class PersonGroup extends Component {
 	render({ personGroupId, personId }, { persistedFaceIds, name }) {
 		return (
 			<div class="main">
-				<form
+				<Form
+					title="Add photo"
 					onSubmit={this.addFace.bind(this)}
-					enctype="multipart/form-data"
-					class="card"
-				>
-					<h3>Add photo</h3>
-					<div class="form-group">
-						<label class="col-sm-2 col-form-label">Image:</label>
-						<div class="col-sm-10">
-							<input
-								name="face"
-								id="face"
-								type="file"
-								accept="image/*"
-								class="form-control-file"
-							/>
-						</div>
-					</div>
-					<button class="btn btn-primary">Add</button>
-				</form>
+					submitLabel="Add photo"
+					fields={[
+						{
+							label: 'Image',
+							id: 'face',
+							type: 'file',
+							accep: 'image/*'
+						}
+					]}
+				/>
 
 				<h3>Person: {name}</h3>
 
