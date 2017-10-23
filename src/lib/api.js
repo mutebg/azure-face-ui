@@ -3,20 +3,27 @@ const config = {
 	API_URL: 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'
 };
 
-const apiFetch = (url, method = 'get', data = {}, aHeaders) => {
+const apiFetch = ({
+	url,
+	method = 'GET',
+	data = null,
+	headers = {},
+	isJSON = true
+}) => {
 	const options = {
 		method,
 		headers: {
 			Accept: 'application/json',
 			'Content-Type': 'application/json',
 			'Ocp-Apim-Subscription-Key': API_SUBSCRIPTION_KEY,
-			...aHeaders
+			...headers
 		}
 	};
 
 	// add post data
 	if (data) {
-		options.body = aHeaders ? data : JSON.stringify(data);
+		options.body =
+			Object.keys(headers).length > 0 ? data : JSON.stringify(data);
 	}
 
 	return fetch(url, options)
@@ -26,72 +33,109 @@ const apiFetch = (url, method = 'get', data = {}, aHeaders) => {
 			}
 			return response;
 		})
-		.then(response => response.json());
+		.then(response => (isJSON ? response.json() : response));
 };
 
 // ajax get method
-const get = path => apiFetch(config.API_URL + path, 'GET', null);
+const get = ({ path, ...rest }) =>
+	apiFetch({
+		url: config.API_URL + path,
+		method: 'GET',
+		...rest
+	});
 
 // ajax post method
-const post = (path, data, headers) =>
-	apiFetch(config.API_URL + path, 'POST', data, headers);
+const post = ({ path, ...rest }) =>
+	apiFetch({
+		url: config.API_URL + path,
+		method: 'POST',
+		...rest
+	});
 
-const put = (path, data, headers) =>
-	apiFetch(config.API_URL + path, 'PUT', data, headers);
+const put = ({ path, ...rest }) =>
+	apiFetch({ url: config.API_URL + path, method: 'PUT', ...rest });
 
 // ajax delete method
-const remove = (path, data) => apiFetch(config.API_URL + path, 'DELETE', data);
+const remove = ({ path, ...rest }) =>
+	apiFetch({
+		url: config.API_URL + path,
+		method: 'DELETE',
+		...rest
+	});
 
 // ajax patch method
-const patch = (path, data) => apiFetch(config.API_URL + path, 'PATCH', data);
+const patch = ({ path, ...rest }) =>
+	apiFetch({
+		url: config.API_URL + path,
+		method: 'PATCH',
+		...rest
+	});
 
-export const getAllGroups = () => get('persongroups?start=0&top=1000');
+export const getAllGroups = () =>
+	get({ path: 'persongroups?start=0&top=1000' });
 
 export const createGroup = (personGroupId, name) =>
-	put(`persongroups/${personGroupId}`, { name });
+	put({ path: `persongroups/${personGroupId}`, data: { name }, isJSON: false });
 
 export const trainGroup = personGroupId =>
-	post(`persongroups/${personGroupId}/train`);
+	post({ path: `persongroups/${personGroupId}/train`, isJSON: false });
 
 export const removeGroup = personGroupId =>
-	remove(`persongroups/${personGroupId}`);
+	remove({ path: `persongroups/${personGroupId}`, isJSON: false });
 
 export const getPeolpeFromPersonGroup = personGroupId =>
-	get(`persongroups/${personGroupId}/persons?start=0&top=1000`);
+	get({ path: `persongroups/${personGroupId}/persons?start=0&top=1000` });
 
 export const createPerson = (personGroupId, personName) =>
-	post(`persongroups/${personGroupId}/persons`, { name: personName });
+	post({
+		path: `persongroups/${personGroupId}/persons`,
+		data: { name: personName }
+	});
 
 export const deletePerson = (personGroupId, personId) =>
-	remove(`persongroups/${personGroupId}/persons/${personId}`);
+	remove({
+		path: `persongroups/${personGroupId}/persons/${personId}`,
+		isJSON: false
+	});
 
 export const updatePerson = (personGroupId, personId, name) =>
-	patch(`persongroups/${personGroupId}/persons/${personId}`, { name });
+	patch({
+		path: `persongroups/${personGroupId}/persons/${personId}`,
+		method: { name }
+	});
 
 export const getPerson = (personGroupId, personId) =>
-	get(`persongroups/${personGroupId}/persons/${personId}`);
+	get({ path: `persongroups/${personGroupId}/persons/${personId}` });
 
 export const addPersonFace = (personGroupId, personId, img) =>
-	post(
-		`persongroups/${personGroupId}/persons/${personId}/persistedFaces`,
-		img,
-		{
+	post({
+		path: `persongroups/${personGroupId}/persons/${personId}/persistedFaces`,
+		data: img,
+		headers: {
 			'Content-Type': 'application/octet-stream'
 		}
-	);
+	});
 
 export const deletePersonFace = (personGroupId, personId, persistedFaceId) =>
-	remove(
-		`persongroups/${personGroupId}/persons/${personId}/persistedFaces/${persistedFaceId}`
-	);
+	remove({
+		path: `persongroups/${personGroupId}/persons/${personId}/persistedFaces/${persistedFaceId}`,
+		isJSON: false
+	});
 
 export const detect = blobImage =>
-	post('detect', blobImage, {
-		'Content-Type': 'application/octet-stream'
+	post({
+		path: 'detect',
+		data: blobImage,
+		headers: {
+			'Content-Type': 'application/octet-stream'
+		}
 	});
 
 export const identify = (faceIds, personGroupId) =>
-	post('identify', {
-		faceIds,
-		personGroupId
+	post({
+		path: 'identify',
+		data: {
+			faceIds,
+			personGroupId
+		}
 	});

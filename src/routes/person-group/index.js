@@ -5,35 +5,40 @@ import {
 	deletePerson
 } from '../../lib/api';
 import Form from '../../components/form';
+import withAlert from '../../components/withAlert';
 
-export default class PersonGroup extends Component {
+class PersonGroup extends Component {
 	state = {
 		people: []
 	};
 
 	loadPeople = () => {
-		getPeolpeFromPersonGroup(this.props.personGroupId).then(result => {
-			this.setState({
-				people: result
-			});
-		});
+		getPeolpeFromPersonGroup(this.props.personGroupId)
+			.then(result => {
+				this.setState({
+					people: result
+				});
+			})
+			.catch(e => this.props.showAlert(e.toString()));
 	};
 
 	addPerson = e => {
 		e.preventDefault();
 		const input = document.getElementById('name');
-		createPerson(this.props.personGroupId, input.value).then(res => {
-			input.value = '';
-			this.loadPeople();
-		});
+		createPerson(this.props.personGroupId, input.value)
+			.then(res => {
+				input.value = '';
+				this.loadPeople();
+			})
+			.catch(e => this.props.showAlert(e.toString()));
 	};
 
 	removePerson(personId) {
 		const ask = confirm('Are you sure ?');
 		if (ask) {
-			deletePerson(this.props.personGroupId, personId).catch(() =>
-				this.loadPeople()
-			);
+			deletePerson(this.props.personGroupId, personId)
+				.then(this.loadPeople)
+				.catch(e => this.props.showAlert(e.toString()));
 		}
 	}
 
@@ -43,7 +48,7 @@ export default class PersonGroup extends Component {
 
 	render({ personGroupId }, { people }) {
 		return (
-			<div class="main">
+			<div>
 				<Form
 					title="Add person"
 					onSubmit={this.addPerson.bind(this)}
@@ -83,3 +88,5 @@ export default class PersonGroup extends Component {
 		);
 	}
 }
+
+export default withAlert(PersonGroup);

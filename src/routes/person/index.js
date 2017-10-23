@@ -1,19 +1,21 @@
 import { h, Component } from 'preact';
-import { route } from 'preact-router';
 import Form from '../../components/form';
+import withAlert from '../../components/withAlert';
 
 import { addPersonFace, deletePersonFace, getPerson } from '../../lib/api';
 
-export default class PersonGroup extends Component {
+class Person extends Component {
 	state = {
 		persistedFaceIds: [],
 		name: ''
 	};
 
 	loadPerson = () => {
-		getPerson(this.props.personGroupId, this.props.personId).then(result => {
-			this.setState(result);
-		});
+		getPerson(this.props.personGroupId, this.props.personId)
+			.then(result => {
+				this.setState(result);
+			})
+			.catch(e => this.props.showAlert(e.toString()));
 	};
 
 	addFace = e => {
@@ -27,29 +29,27 @@ export default class PersonGroup extends Component {
 			const blob = await fetch(fileLoadedEvent.target.result).then(res =>
 				res.blob()
 			);
-			addPersonFace(
-				this.props.personGroupId,
-				this.props.personId,
-				blob
-			).then(res => {
-				input.value = '';
-				this.loadPerson();
-			});
+			addPersonFace(this.props.personGroupId, this.props.personId, blob)
+				.then(res => {
+					input.value = '';
+					this.loadPerson();
+				})
+				.catch(e => {
+					this.props.showAlert(e.toString());
+				});
 		};
 
 		fileReader.readAsDataURL(fileToLoad);
 	};
 
-	deletePerson = () => {};
-
 	deleteFace = id => {
 		const ask = confirm('Are you sure ?');
 		if (ask) {
-			deletePersonFace(
-				this.props.personGroupId,
-				this.props.personId,
-				id
-			).catch(() => this.loadPerson());
+			deletePersonFace(this.props.personGroupId, this.props.personId, id)
+				.then(this.loadPerson)
+				.catch(e => {
+					this.props.showAlert(e.toString());
+				});
 		}
 	};
 
@@ -59,7 +59,7 @@ export default class PersonGroup extends Component {
 
 	render({ personGroupId, personId }, { persistedFaceIds, name }) {
 		return (
-			<div class="main">
+			<div>
 				<Form
 					title="Add photo"
 					onSubmit={this.addFace.bind(this)}
@@ -99,3 +99,5 @@ export default class PersonGroup extends Component {
 		);
 	}
 }
+
+export default withAlert(Person);

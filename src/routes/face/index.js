@@ -52,7 +52,7 @@ export default class Face extends Component {
 						);
 
 						// identify people on images
-						if (faceResult.length > 0) {
+						if (faceResult && faceResult.length > 0) {
 							const people = await Promise.all(
 								faceResult.map(
 									async person =>

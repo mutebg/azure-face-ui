@@ -6,8 +6,9 @@ import {
 	removeGroup
 } from '../../lib/api';
 import Form from '../../components/form';
+import withAlert from '../../components/withAlert';
 
-export default class Home extends Component {
+class Home extends Component {
 	state = {
 		groups: []
 	};
@@ -16,25 +17,37 @@ export default class Home extends Component {
 		e.preventDefault();
 		const inputName = document.getElementById('name');
 		const inputId = document.getElementById('id');
-		createGroup(inputId.value, inputName.value).catch(e => {
-			inputName.value = '';
-			inputId.value = '';
-			this.loadGroups();
-		});
+		createGroup(inputId.value, inputName.value)
+			.then(e => {
+				inputName.value = '';
+				inputId.value = '';
+				this.loadGroups();
+			})
+			.catch(e => {
+				this.props.showAlert(e.toString());
+			});
 	};
 
 	loadGroups = () => {
-		getAllGroups().then(result => {
-			this.setState({
-				groups: result
+		getAllGroups()
+			.then(result => {
+				this.setState({
+					groups: result
+				});
+			})
+			.catch(e => {
+				this.props.showAlert(e.toString());
 			});
-		});
 	};
 
 	removeGroup = personGroupId => {
 		const ask = confirm('Are you sure ?');
 		if (ask) {
-			removeGroup(personGroupId).catch(e => this.loadGroups());
+			removeGroup(personGroupId)
+				.then(this.loadGroups)
+				.catch(e => {
+					this.props.showAlert(e.toString());
+				});
 		}
 	};
 
@@ -44,7 +57,7 @@ export default class Home extends Component {
 
 	render(_, { groups }) {
 		return (
-			<div class="main">
+			<div>
 				<Form
 					title="Add group"
 					onSubmit={this.addGroup.bind(this)}
@@ -90,3 +103,5 @@ export default class Home extends Component {
 		);
 	}
 }
+
+export default withAlert(Home);
