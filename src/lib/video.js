@@ -1,13 +1,17 @@
 import { identify, detect } from './api';
 
-export const capture = (video, canvas) => {
+export const drawImageToCanvas = (video, canvas) => {
 	const ctx = canvas.getContext('2d');
-	ctx.drawImage(video, 0, 0);
+	ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+	return ctx;
+};
+
+export const capture = canvas => {
 	let dataURL = canvas.toDataURL('image/png');
 	return dataURL;
 };
 
-export const startVideo = (video, ctrack) => {
+export const startVideo = video => {
 	// set up video
 	if (navigator.mediaDevices) {
 		navigator.mediaDevices
@@ -28,7 +32,6 @@ export const startVideo = (video, ctrack) => {
 		'canplay',
 		() => {
 			video.play();
-			ctrack.start(video);
 		},
 		false
 	);
