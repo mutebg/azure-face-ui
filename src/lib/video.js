@@ -6,10 +6,10 @@ export const drawImageToCanvas = (video, canvas) => {
 	return ctx;
 };
 
-export const capture = canvas => {
-	let dataURL = canvas.toDataURL('image/png');
-	return dataURL;
-};
+export const capture = canvas =>
+	new Promise((resolve, reject) => {
+		canvas.toBlob(resolve, 'image/jpeg', 0.95);
+	});
 
 export const startVideo = video => {
 	// set up video
@@ -51,9 +51,8 @@ export const compareImages = (newImage, oldImage) =>
 		}
 	});
 
-export const findPerson = async (base64image, personGroupId) => {
+export const findPerson = async (blob, personGroupId) => {
 	try {
-		const blob = await fetch(base64image).then(res => res.blob());
 		const faceData = await detect(blob);
 		const faceIds = faceData.map(({ faceId }) => faceId);
 		if (faceIds.length === 0) {

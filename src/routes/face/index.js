@@ -38,7 +38,8 @@ export default class Face extends Component {
 				const faces = await faceDetector.detect(overlay);
 
 				if (faces.length) {
-					const image = capture(overlay);
+					const imageBlob = await capture(overlay);
+					const image = window.URL.createObjectURL(imageBlob);
 					this.lastImages.unshift(image);
 
 					//keep last 2 images
@@ -49,7 +50,7 @@ export default class Face extends Component {
 					if (diffPercentage > THRESHOLD) {
 						// find faces
 						const faceResult = await findPerson(
-							image,
+							imageBlob,
 							this.props.personGroupId
 						);
 
