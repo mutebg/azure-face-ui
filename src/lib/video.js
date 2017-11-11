@@ -1,13 +1,17 @@
 import { identify, detect } from './api';
 
-export const capture = (video, canvas) => {
+export const drawImageToCanvas = (video, canvas) => {
 	const ctx = canvas.getContext('2d');
-	ctx.drawImage(video, 0, 0);
-	let dataURL = canvas.toDataURL('image/png');
-	return dataURL;
+	ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+	return ctx;
 };
 
-export const startVideo = (video, ctrack) => {
+export const capture = canvas =>
+	new Promise((resolve, reject) => {
+		canvas.toBlob(resolve, 'image/jpeg', 0.95);
+	});
+
+export const startVideo = video => {
 	// set up video
 	if (navigator.mediaDevices) {
 		navigator.mediaDevices
@@ -28,7 +32,6 @@ export const startVideo = (video, ctrack) => {
 		'canplay',
 		() => {
 			video.play();
-			ctrack.start(video);
 		},
 		false
 	);
@@ -48,9 +51,8 @@ export const compareImages = (newImage, oldImage) =>
 		}
 	});
 
-export const findPerson = async (base64image, personGroupId) => {
+export const findPerson = async (blob, personGroupId) => {
 	try {
-		const blob = await fetch(base64image).then(res => res.blob());
 		const faceData = await detect(blob);
 		const faceIds = faceData.map(({ faceId }) => faceId);
 		if (faceIds.length === 0) {

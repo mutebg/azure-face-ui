@@ -4,7 +4,8 @@ import {
 	startVideo,
 	capture,
 	compareImages,
-	findPerson
+	findPerson,
+	drawImageToCanvas
 } from '../../lib/video';
 
 export default class Face extends Component {
@@ -24,19 +25,21 @@ export default class Face extends Component {
 		const videoEl = document.querySelector('#video');
 		const overlay = document.getElementById('canvas');
 
-		// Code for face tracking
-		let ctrack = new clm.tracker();
-		ctrack.init();
-
 		try {
-			startVideo(videoEl, ctrack);
+			startVideo(videoEl);
+			const faceDetector = new FaceDetector({
+				fastMode: true,
+				maxDetectedFaces: 1
+			});
 
 			setInterval(async () => {
-				// get position of face
-				const position = ctrack.getCurrentPosition();
+				drawImageToCanvas(videoEl, overlay);
 
-				if (position) {
-					const image = capture(videoEl, overlay);
+				const faces = await faceDetector.detect(overlay);
+
+				if (faces.length) {
+					const imageBlob = await capture(overlay);
+					const image = window.URL.createObjectURL(imageBlob);
 					this.lastImages.unshift(image);
 
 					//keep last 2 images
@@ -47,7 +50,7 @@ export default class Face extends Component {
 					if (diffPercentage > THRESHOLD) {
 						// find faces
 						const faceResult = await findPerson(
-							image,
+							imageBlob,
 							this.props.personGroupId
 						);
 
