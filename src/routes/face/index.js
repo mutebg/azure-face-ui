@@ -1,5 +1,5 @@
 import { h, Component } from 'preact';
-import { getPerson } from '../../lib/api';
+import { getPeolpeFromPersonGroup } from '../../lib/api';
 import {
 	startVideo,
 	capture,
@@ -32,51 +32,57 @@ export default class Face extends Component {
 				maxDetectedFaces: 1
 			});
 
+			// fetch all people from azure api
+			const allPeopleData = await getPeolpeFromPersonGroup(
+				this.props.personGroupId
+			);
+			// transform people array to object with {person_id => person name }
+			const allPeople = allPeopleData.reduce((prev, current) => {
+				prev[current.personId] = current.name;
+				return prev;
+			}, {});
+
 			setInterval(async () => {
 				drawImageToCanvas(videoEl, overlay);
 
 				const faces = await faceDetector.detect(overlay);
 
-				if (faces.length) {
-					const imageBlob = await capture(overlay);
-					const image = window.URL.createObjectURL(imageBlob);
-					this.lastImages.unshift(image);
-
-					//keep last 2 images
-					this.lastImages = this.lastImages.slice(0, 2);
-
-					// compare last 2 images
-					const diffPercentage = await compareImages(...this.lastImages);
-					if (diffPercentage > THRESHOLD) {
-						// find faces
-						const faceResult = await findPerson(
-							imageBlob,
-							this.props.personGroupId
-						);
-
-						// identify people on images
-						if (faceResult && faceResult.length > 0) {
-							const people = await Promise.all(
-								faceResult.map(
-									async person =>
-										await getPerson(
-											this.props.personGroupId,
-											person.candidates[0].personId
-										)
-								)
-							);
-
-							this.setState({
-								people
-							});
-						}
-						else {
-							this.hideAll();
-						}
-					}
-				}
-				else {
+				if (!faces.length) {
 					this.hideAll();
+					return null;
+				}
+
+				const imageBlob = await capture(overlay);
+				const image = window.URL.createObjectURL(imageBlob);
+				this.lastImages.unshift(image);
+
+				//keep last 2 images
+				this.lastImages = this.lastImages.slice(0, 2);
+
+				// compare last 2 images
+				const diffPercentage = await compareImages(...this.lastImages);
+				if (diffPercentage < THRESHOLD) {
+					// images are similar
+					return false;
+				}
+
+				// find faces
+				const faceIds = await findPerson(imageBlob, this.props.personGroupId);
+
+				// identify people on images
+				if (faceIds && faceIds.length > 0) {
+					const people = faceIds.map(id => ({
+						id,
+						name: allPeople[id]
+					}));
+
+					this.setState({
+						people
+					});
+
+					this.setState({
+						people
+					});
 				}
 			}, 1000);
 		}

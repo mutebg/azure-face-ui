@@ -16,14 +16,14 @@ export const startVideo = video => {
 	if (navigator.mediaDevices) {
 		navigator.mediaDevices
 			.getUserMedia({ video: true })
-			.then(stream => gumSuccess(stream, video))
-			.catch(e => console.log(e));
+			.then(stream => getMediaSuccess(stream, video))
+			.catch(getMediaError);
 	}
 	else if (navigator.getUserMedia) {
 		navigator.getUserMedia(
 			{ video: true },
-			stream => gumSuccess(stream, video),
-			e => console.log(e)
+			stream => getMediaSuccess(stream, video),
+			getMediaError
 		);
 	}
 
@@ -58,14 +58,17 @@ export const findPerson = async (blob, personGroupId) => {
 		if (faceIds.length === 0) {
 			throw 'No find face';
 		}
-		return identify(faceIds, personGroupId);
+		const result = await identify(faceIds, personGroupId);
+		return result.map(
+			person => person.candidates.length && person.candidates[0].personId
+		);
 	}
 	catch (e) {
 		console.log(e);
 	}
 };
 
-export function gumSuccess(stream, video) {
+export function getMediaSuccess(stream, video) {
 	// add camera stream if getUserMedia succeeded
 	if ('srcObject' in video) {
 		video.srcObject = stream;
@@ -76,4 +79,10 @@ export function gumSuccess(stream, video) {
 	video.onloadedmetadata = function() {
 		video.play();
 	};
+}
+
+function getMediaError(e) {
+	alert(
+		'There was some problem trying to fetch video from your webcam, using a fallback video instead.'
+	);
 }
