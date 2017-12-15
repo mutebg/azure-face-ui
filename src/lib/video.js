@@ -37,6 +37,10 @@ export const startVideo = video => {
 	);
 };
 
+export const stopVideo = video => {
+	video.pause();
+};
+
 export const compareImages = (newImage, oldImage) =>
 	new Promise((resolve, reject) => {
 		if (newImage && oldImage) {
@@ -78,6 +82,13 @@ export function getMediaSuccess(stream, video) {
 	}
 	video.onloadedmetadata = function() {
 		video.play();
+	};
+
+	video.onpause = () => {
+		let tracks = stream.getTracks();
+		tracks.forEach(track => {
+			track.stop();
+		});
 	};
 }
 
