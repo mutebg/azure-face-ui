@@ -2,6 +2,7 @@ import { h, Component } from 'preact';
 import { getPeolpeFromPersonGroup } from '../../lib/api';
 import {
 	startVideo,
+	stopVideo,
 	capture,
 	compareImages,
 	findPerson,
@@ -22,11 +23,11 @@ export default class Face extends Component {
 
 	async componentDidMount() {
 		const THRESHOLD = 8;
-		const videoEl = document.querySelector('#video');
+		this.videoEl = document.querySelector('#video');
 		const overlay = document.getElementById('canvas');
 
 		try {
-			startVideo(videoEl);
+			startVideo(this.videoEl);
 			const faceDetector = new FaceDetector({
 				fastMode: true,
 				maxDetectedFaces: 1
@@ -43,7 +44,7 @@ export default class Face extends Component {
 			}, {});
 
 			setInterval(async () => {
-				drawImageToCanvas(videoEl, overlay);
+				drawImageToCanvas(this.videoEl, overlay);
 
 				const faces = await faceDetector.detect(overlay);
 
@@ -89,7 +90,9 @@ export default class Face extends Component {
 		catch (e) {}
 	}
 
-	componentWillUnmount() {}
+	componentWillUnmount() {
+		stopVideo(this.videoEl);
+	}
 
 	render(_, { people }) {
 		return (
