@@ -27,10 +27,17 @@ export default class Face extends Component {
 
 		try {
 			startVideo(videoEl);
+
+			if (!window.FaceDetector) {
+				window.alert('This browser do not support the Shape Detector API. No face will be recognized.');
+				return;
+			}
+
 			const faceDetector = new FaceDetector({
 				fastMode: true,
 				maxDetectedFaces: 1
 			});
+		
 
 			// fetch all people from azure api
 			const allPeopleData = await getPeolpeFromPersonGroup(
@@ -86,7 +93,9 @@ export default class Face extends Component {
 				}
 			}, 1000);
 		}
-		catch (e) {}
+		catch (e) {
+			console.error(e);
+		}
 	}
 
 	componentWillUnmount() {}

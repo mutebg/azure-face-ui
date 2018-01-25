@@ -51,7 +51,20 @@ class Home extends Component {
 		}
 	};
 
+	verifyNeededBrowserFeatures = () => {
+		if (!window.FaceDetector) {
+			this.props.showAlert(
+				<div>
+					<strong>window.FaceDetector</strong> is not currently available.<br />
+					Please enable the experimental features in your browser in: <br /><br />
+					chrome://flags/#enable-experimental-web-platform-features
+				</div>
+			);
+		}
+	}
+
 	componentWillMount() {
+		this.verifyNeededBrowserFeatures();
 		this.loadGroups();
 	}
 
